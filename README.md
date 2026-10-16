@@ -36,6 +36,8 @@ An implementation of Independent Component Analysis (ICA) built from scratch usi
   $$P(y_1, y_2, \dots, y_m) = \prod_{i=1}^m P(y_i)$$
   Higher-order non-linear functions like $\tanh(u)$ evaluate cross-correlations across all moments, decoupling independent sources.
 
+While PCA achieves orthogonal decorrelation ($E[y_i y_j] = 0$), it only addresses second-order statistics. The resulting PCA signals remain entangled with cross-talk and bleed-through (maximum correlation $\approx 0.61$). In contrast, FastICA optimizes higher-order statistics (negentropy via $\tanh$), yielding correlations exceeding $0.98$ and isolating individual clean waveforms.
+
 ### 2. What Whitening Does and Why It Simplifies ICA
 * Whitening transforms the covariance matrix of the observations into an identity matrix ($\text{Cov}(X_{\text{white}}) = I$), converting an elliptical, correlated data distribution into a spherical, decorrelated one.
 * **Simplification:** In unwhitened space, solving for $W$ requires estimating $m^2$ free parameters. Once the data is whitened, any further transformation that preserves unit variance must be an orthogonal rotation matrix ($W W^T = I$). This reduces the parameter space to only $m(m-1)/2$ rotational degrees of freedom, dramatically accelerating convergence.
@@ -50,5 +52,3 @@ An implementation of Independent Component Analysis (ICA) built from scratch usi
 * **Metric Formulation:** We resolve these ambiguities by constructing a full bipartite correlation matrix between recovered components and ground truth sources, aligning pairs via maximum absolute Pearson correlation before calculating SDR.
 
 
-ICA vs PCA:
-While PCA achieves orthogonal decorrelation ($E[y_i y_j] = 0$), it only addresses second-order statistics. The resulting PCA signals remain entangled with cross-talk and bleed-through (maximum correlation $\approx 0.61$). In contrast, FastICA optimizes higher-order statistics (negentropy via $\tanh$), yielding correlations exceeding $0.98$ and isolating individual clean waveforms.
