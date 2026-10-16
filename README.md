@@ -1,6 +1,10 @@
 # unmix
 # Unmix the Signal (Independent Component Analysis from Scratch)
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://unmix-ica.streamlit.app)
+
+> **Live Interactive Demo:** [unmix-ica.streamlit.app](https://unmix-ica.streamlit.app)
+
 An implementation of Independent Component Analysis (ICA) built from scratch using NumPy and SciPy to solve the Cocktail Party Problem and recover clean, independent audio sources from linear mixtures.
 
 ## Pipeline Architecture
