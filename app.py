@@ -70,16 +70,32 @@ def run_pipeline(X_in, n_comp):
     X_cent = X_in - np.mean(X_in, axis=1, keepdims=True)
     
     # PCA Whitening
+    # PCA Whitening (with Dimensionality Reduction)
     Sigma = np.cov(X_cent)
     evals, E = np.linalg.eigh(Sigma)
-    D_inv = np.diag(1.0 / np.sqrt(np.maximum(evals, 1e-12)))
-    V = np.dot(D_inv, E.T)
+    
+    # Sort eigenvalues descending
+    idx = np.argsort(evals)[::-1]
+    evals = evals[idx]
+    E = E[:, idx]
+    
+    # Drop near-zero eigenvalues (threshold 1e-5) to prevent gradient explosion
+    valid_idx = evals > 1e-5
+    evals_valid = evals[valid_idx]
+    E_valid = E[:, valid_idx]
+    
+    # The new effective number of components
+    n_comp_effective = len(evals_valid)
+    
+    # Whiten using only valid dimensions
+    D_inv = np.diag(1.0 / np.sqrt(evals_valid))
+    V = np.dot(D_inv, E_valid.T)
     X_w = np.dot(V, X_cent)
     
     # FastICA loop
-    W = np.zeros((n_comp, n_comp))
-    for p in range(n_comp):
-        w = np.random.randn(n_comp)
+    W = np.zeros((n_comp_effective, n_comp_effective))
+    for p in range(n_comp_effective):
+        w = np.random.randn(n_comp_effective)
         w /= np.linalg.norm(w)
         for _ in range(300):
             u = np.dot(w, X_w)
