@@ -1,22 +1,17 @@
-import os
 import io
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
 
-# --- 1. Dynamic Directory Resolution ---
-# BASE_DIR points directly to the folder containing app.py
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-DATA_DIR = os.path.join(BASE_DIR, "data")
-SOURCES_DIR = os.path.join(DATA_DIR, "sources")
-MIXED_DIR = os.path.join(DATA_DIR, "mixed")
-SEPARATED_DIR = os.path.join(DATA_DIR, "separated")
-
-# Ensure required folders exist dynamically at runtime
-for folder in [SOURCES_DIR, MIXED_DIR, SEPARATED_DIR]:
-    os.makedirs(folder, exist_ok=True)
+# --- 1. Audio In-Memory Buffer Helper ---
+def audio_to_bytes(signal, sample_rate=22050):
+    buffer = io.BytesIO()
+    # Normalize to prevent clipping distortion
+    max_val = np.max(np.abs(signal))
+    norm_sig = signal / max_val if max_val > 0 else signal
+    wavfile.write(buffer, sample_rate, norm_sig.astype(np.float32))
+    return buffer.getvalue()
 
 # --- 2. Streamlit Page Setup ---
 st.set_page_config(page_title="Blind Audio Separation (ICA)", layout="wide")
@@ -36,7 +31,7 @@ t = np.linspace(0, duration, int(sr * duration), endpoint=False)
 # Signal synthesis helper
 def generate_signals(n, length):
     signals = []
-    # Source 1: Harmonic pitch
+    # Source 1: Harmonic tone
     signals.append(np.sin(2 * np.pi * 330 * t) + 0.5 * np.sin(2 * np.pi * 660 * t))
     # Source 2: Tremolo / AM chime
     signals.append(np.sin(2 * np.pi * 550 * t) * np.sin(2 * np.pi * 4 * t))
@@ -49,9 +44,6 @@ def generate_signals(n, length):
     S = np.array(signals[:n])
     for i in range(n):
         S[i] = S[i] / np.max(np.abs(S[i]))
-        # Save to resolved absolute path
-        out_path = os.path.join(SOURCES_DIR, f"source_{i+1}.wav")
-        wavfile.write(out_path, sr, S[i].astype(np.float32))
     return S
 
 S = generate_signals(n_sources, len(t))
@@ -63,20 +55,14 @@ while abs(np.linalg.det(A)) < 1e-2:
     A = np.random.uniform(0.2, 0.8, (n_sources, n_sources))
 X = np.dot(A, S)
 
-# Save mixed signals
-for i in range(n_sources):
-    norm_mix = (X[i] / np.max(np.abs(X[i]))).astype(np.float32)
-    out_path = os.path.join(MIXED_DIR, f"mixed_{i+1}.wav")
-    wavfile.write(out_path, sr, norm_mix)
-
 col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("1. Observed Mixtures")
     for i in range(n_sources):
-        mix_file = os.path.join(MIXED_DIR, f"mixed_{i+1}.wav")
+        mix_bytes = audio_to_bytes(X[i], sr)
         st.write(f"Mixed Track {i+1}")
-        st.audio(mix_file, format="audio/wav")
+        st.audio(mix_bytes, format="audio/wav")
 
 # ICA Pipeline Function
 def run_pipeline(X_in, n_comp):
@@ -114,11 +100,16 @@ if st.button("Run FastICA Separation", type="primary"):
     with col2:
         st.subheader("2. Separated Sources")
         for i in range(n_sources):
-            norm_rec = (S_rec[i] / np.max(np.abs(S_rec[i]))).astype(np.float32)
-            out_path = os.path.join(SEPARATED_DIR, f"recovered_{i+1}.wav")
-            wavfile.write(out_path, sr, norm_rec)
+            rec_bytes = audio_to_bytes(S_rec[i], sr)
             st.write(f"Recovered Source {i+1}")
-            st.audio(out_path, format="audio/wav")
+            st.audio(rec_bytes, format="audio/wav")
+            st.download_button(
+                label=f"Download Recovered {i+1}.wav",
+                data=rec_bytes,
+                file_name=f"recovered_{i+1}.wav",
+                mime="audio/wav",
+                key=f"dl_{i}"
+            )
             
     # Waveform Display
     st.subheader("Waveform Analysis (First 800 Samples)")
