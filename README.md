@@ -44,3 +44,7 @@ An implementation of Independent Component Analysis (ICA) built from scratch usi
 * **Permutation Ambiguity:** ICA cannot determine the original physical order of the components.
 * **Scale / Sign Ambiguity:** The unmixing matrix cannot determine the absolute original volume or phase polarity (a track can be recovered inverted as $-s_i$).
 * **Metric Formulation:** We resolve these ambiguities by constructing a full bipartite correlation matrix between recovered components and ground truth sources, aligning pairs via maximum absolute Pearson correlation before calculating SDR.
+
+
+ICA vs PCA:
+While PCA achieves orthogonal decorrelation ($E[y_i y_j] = 0$), it only addresses second-order statistics. The resulting PCA signals remain entangled with cross-talk and bleed-through (maximum correlation $\approx 0.61$). In contrast, FastICA optimizes higher-order statistics (negentropy via $\tanh$), yielding correlations exceeding $0.98$ and isolating individual clean waveforms.
