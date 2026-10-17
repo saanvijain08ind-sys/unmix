@@ -42,3 +42,16 @@ An implementation of Independent Component Analysis (ICA) built from scratch usi
 ## Separation Metrics
 * **Absolute Pearson Correlation:** $\ge 0.98$ for all aligned source pairs.
 * **Signal-to-Distortion Ratio (SDR):** Evaluated against original sources accounting for permutation and sign inversion.
+
+## Future Scope & Enhancements
+While the current implementation successfully resolves instantaneous linear mixtures, the project architecture is designed to accommodate several advanced expansions: (Unmix PRO)
+
+### Algorithmic Upgrades
+* **Solving Convolutive Mixing (FD-ICA):** The foundational mathematical model assumes instantaneous linear mixing (sound traveling with zero echo). A primary real-world upgrade involves addressing convolutive mixing (room acoustics and physical echoes). This will be achieved by converting the audio into the frequency domain via Short-Time Fourier Transform (STFT) and running FastICA independently across frequency bins (Frequency-Domain ICA).
+* **Automated Source Estimation:** Transitioning from manual UI inputs to a truly "blind" system. Future iterations will programmatically estimate the exact number of distinct speakers in a mixture by analyzing the eigenvalues of the PCA step (using Scree Plots) or by applying Information Criteria (such as AIC or BIC).
+* **Underdetermined Blind Source Separation (BSS):** Standard FastICA requires the number of microphones to be equal to or greater than the number of sources. Implementing Underdetermined BSS techniques will allow the algorithm to isolate signals even in severely microphone-limited environments.
+
+### Platform & Feature Integrations
+* **Custom Audio Uploads & Preprocessing:** Expanding the data pipeline to handle real-world custom user uploads instead of synthesized arrays. This requires robust preprocessing middleware to handle mismatched array lengths via zero-padding and enforce uniform sample rates across all tracks.
+* **Advanced Analytics:** Expanding the evaluation metrics to dynamically track and visualize separation quality across varying Signal-to-Noise Ratio (SNR) levels.
+* **Audio Recognition Pipeline:** Implementing an integrated "mini-Shazam" acoustic fingerprinting feature to automatically cross-reference and identify specific tracks from a library immediately after the ICA algorithm isolates them.
