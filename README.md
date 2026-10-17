@@ -67,11 +67,11 @@ FastICA does not search for uniformity or periodic regularity; it searches for *
 
 According to the Central Limit Theorem (CLT), the linear combination of multiple independent random variables tends toward a Gaussian (bell curve) distribution. Consequently, a mixture of two or more independent acoustic tracks is statistically more Gaussian than any of the isolated sources. FastICA separates sources by rotating projection vectors to maximize departure from Gaussianity (measured via negentropy approximations such as g(u) = tanh(u)).
 
-```text
+
 Speech Source A (Non-Gaussian) ──┐
                                 ├──▶ Linear Mixture X ──▶ FastICA (Maximizes 
 Speech Source B (Non-Gaussian) ──┘    (Tends Gaussian)    Non-Gaussianity) ──▶ Recovered Sources
-'''text
+
 
 2. Why Human Speech is Super-Gaussian (Leptokurtic)
 Human vocalizations exhibit statistical properties that make them straightforward for FastICA to isolate:
